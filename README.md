@@ -7,7 +7,7 @@
 
 ## 📌 프로젝트 개요 (Overview)
 본 작업 공간(Workspace)은 ROS 2 Humble 환경에서 인공지능 비전(YOLOv8)과 깊이(Depth) 카메라를 결합하여, 다양한 구조로 조립된 듀플로(Duplo) 블록 탑을 실시간으로 스캔하고 상단에서부터 안전하게 연쇄 분해(Top-Down Disassembly)하는 지능형 로봇 제어 시스템입니다.
-불펌 금지
+
 ---
 
 ## 🛠️ 실행 방법 (Usage)
@@ -19,7 +19,7 @@ colcon build
 source install/setup.bash
 ---
 ---
-
+##
 ## 👨‍💻 Author
 * **이다한 (Lee Dahan)** **한덕희 (Han DeokHui)**
 * Incheon National University, Dept. of Electrical Engineering
