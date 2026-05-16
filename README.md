@@ -23,3 +23,9 @@ source install/setup.bash
 ## 👨‍💻 Author
 * **이다한 (Lee Dahan)** **한덕희 (Han DeokHui)**
 * Incheon National University, Dept. of Electrical Engineering
+
+---
+
+## 👨‍💻 Author
+* **이다한 (Lee Dahan)**, **박정우 (Park jeongwoo)**
+* Incheon National University, Dept. of Electrical Engineering
