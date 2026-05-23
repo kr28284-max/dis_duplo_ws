@@ -1,4 +1,4 @@
-# 🤖 ROS 2 지능형 듀플로 분해 로봇 (Intelligent Duplo Assembly Robot)
+# 🤖 ROS 2 지능형 듀플로 분해 로봇 (Intelligent Duplo  Disassembly Robot)
 
 ![ROS 2](https://img.shields.io/badge/ROS_2-Humble-22314E?style=flat&logo=ros&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=flat&logo=python&logoColor=white)
