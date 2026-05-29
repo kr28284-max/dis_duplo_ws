@@ -34,6 +34,7 @@ setup(
             'master_node_dis = control_pkg.master_node_dis:main',
             'master_node_dis2 = control_pkg.master_node_dis2:main',
             'master_node_dis3 = control_pkg.master_node_dis3:main',
+            'master_node_dis4 = control_pkg.master_node_dis4:main',
         ],
     },
 )

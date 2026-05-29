@@ -34,7 +34,7 @@ class RobotNode(Node):
         return True
 
     def home_cb(self, req, res):
-        self.robot.move_j(self.rc, np.array([-90.0, 0.0, 90.0, 0.0, 90.0, 0.0], dtype=float), 255, 255)
+        self.robot.move_j(self.rc, np.array([-90.0, 0.0, 50.0, 0.0, 130.0, 0.0], dtype=float), 255, 255)
         self.wait_move("HOME")
         res.success = True
         return res

@@ -237,8 +237,8 @@ class VisionNode(Node):
         self.srv = self.create_service(GetTargetPose, '/get_target_pose', self.get_pose_cb)
         
         # 🌟 앙상블 모드: 두 개의 모델을 동시에 로드합니다.
-        self.model_det = YOLO("/home/da/dis_duplo_ws/best.pt")      # 좌표 안정화용 새 모델 (detect)
-        self.model_seg = YOLO("/home/da/dis_duplo_ws/best_old.pt")  # Yaw 추출용 구형 모델 (segment)
+        self.model_det = YOLO("/home/han/dis_duplo_ws/best.pt")      # 좌표 안정화용 새 모델 (detect)
+        self.model_seg = YOLO("/home/han/dis_duplo_ws/best_old.pt")  # Yaw 추출용 구형 모델 (segment)
 
         self.get_logger().info(f"✅ YOLO 새 모델 Task: {self.model_det.task}")
         self.get_logger().info(f"✅ YOLO 예전 모델 Task: {self.model_seg.task}")
