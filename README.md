@@ -4,11 +4,11 @@
 ## 🛠️ 실행 방법 (Usage)
 
 ```bash
-cd ~/dis_duplo_ws   (robot1, robot2구동) 
+cd ~/dis_duplo_ws   (robot1, robot2구동) 굳이 안건드려도 될듯 
 ros2 run control_pkg robot_node2
 ---
 
-cd ~/dis_duplo_ws   (중요x 다시만들어야함 참고만) 
+cd ~/dis_duplo_ws   (중요x 다시만들어야함 참고만)  로봇 위치 고정시켜서 로봇 2는 비전없이 하드코딩으로 할예정
 ros2 run control_pkg master_node_dis6
 ---
 
