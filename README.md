@@ -5,20 +5,22 @@
 
 ```bash
 cd ~/dis_duplo_ws
-
+ros2 run control_pkg robot_node2
 ---
-### 
-```bash
-cd ~/dis_duplo_ws
 
+cd ~/dis_duplo_ws
+ros2 run control_pkg master_node_dis6
 ---
-### 1. 환경 빌드 및 소싱
-```bash
-cd ~/dis_duplo_ws
 
+
+cd ~/dis_duplo_ws
+ros2 run vision_pkg vision_6Dpose_node3
 ---
-### 1. 환경 빌드 및 소싱
-```bash
-cd ~/dis_duplo_ws
 
+cd ~/dis_duplo_ws
+ros2 run hardware_pkg gripper_node
+---
+
+cd ~/dis_duplo_ws
+ros2 run hardware_pkg robot2_gpio_gripper_node
 ---
