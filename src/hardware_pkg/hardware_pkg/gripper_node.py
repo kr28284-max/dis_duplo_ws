@@ -3,6 +3,7 @@ from rclpy.node import Node
 from std_srvs.srv import SetBool
 import serial
 import time
+import threading
 
 class GripperNode(Node):
     def __init__(self):
@@ -11,7 +12,7 @@ class GripperNode(Node):
         
         try:
             # 시리얼 포트 연결 (노트북 설정에 맞춰 ACM0 또는 ACM1 확인 필요)
-            self.ser = serial.Serial("/dev/ttyACM0", 115200, timeout=1)
+            self.ser = serial.Serial("/dev/ttyACM1", 115200, timeout=1)
             
             # 아두이노/그리퍼 컨트롤러 리셋 대기
             time.sleep(2.0)
@@ -19,10 +20,18 @@ class GripperNode(Node):
 
             # [수정 사항] 노드 시작 시 자동으로 그리퍼를 엽니다.
             self.get_logger().info("➡️ Initializing Gripper: Sending 'open'...")
-            self.ser.write(b"open\n")
+            self.send_command("open")
             
         except Exception as e:
             self.get_logger().error(f"❌ Serial Error: {e}")
+
+        self.keyboard_thread = threading.Thread(target=self.keyboard_loop, daemon=True)
+        self.keyboard_thread.start()
+
+    def send_command(self, command):
+        serial_command = "grip" if command == "close" else command
+        self.ser.write(f"{serial_command}\n".encode())
+        self.get_logger().info(f"📌 Sent: {serial_command} (input: {command})")
 
     def control_cb(self, request, response):
         """
@@ -31,12 +40,10 @@ class GripperNode(Node):
         """
         try:
             if request.data:  # True -> Grip
-                self.ser.write(b"grip\n")
-                self.get_logger().info("📌 Sent: grip")
+                self.send_command("grip")
                 response.message = "Grip Command Sent"
             else:             # False -> Open
-                self.ser.write(b"open\n")
-                self.get_logger().info("📌 Sent: open")
+                self.send_command("open")
                 response.message = "Open Command Sent"
             
             response.success = True
@@ -46,6 +53,26 @@ class GripperNode(Node):
             response.message = str(e)
             
         return response
+
+    def keyboard_loop(self):
+        print("\n[Gripper Keyboard] Type: open / close / grip / quit")
+        while rclpy.ok():
+            try:
+                command = input("gripper> ").strip().lower()
+            except EOFError:
+                return
+
+            if command in ("open", "close", "grip"):
+                try:
+                    self.send_command(command)
+                except Exception as e:
+                    self.get_logger().error(f"❌ Keyboard Error: {e}")
+            elif command in ("quit", "exit"):
+                self.get_logger().info("Keyboard exit requested")
+                rclpy.shutdown()
+                return
+            elif command:
+                print("Use: open / close / grip / quit")
 
 def main(args=None):
     rclpy.init(args=args)

@@ -24,7 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'vision_6Dpose_node = vision_pkg.vision_6Dpose_node:main'
+            'vision_6Dpose_node = vision_pkg.vision_6Dpose_node:main',
+            'vision_6Dpose_node2 = vision_pkg.vision_6Dpose_node2:main',
+            'vision_6Dpose_node3 = vision_pkg.vision_6Dpose_node3:main',
         ],
     },
 )

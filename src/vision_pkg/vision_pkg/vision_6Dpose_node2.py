@@ -10,15 +10,17 @@ import time
 
 class VisionNode(Node):
     def __init__(self):
-        super().__init__('vision_node')
+        super().__init__('vision_node2')
+        self.camera_index = self.declare_parameter('camera_index', 1).value
         serial_descriptor = ParameterDescriptor(dynamic_typing=True)
         self.camera_serial = self.declare_parameter(
             'camera_serial',
-            '332322072441',
+            '243522075311',
             descriptor=serial_descriptor,
         ).value
         self.camera_serial = str(self.camera_serial) if self.camera_serial else ''
-        self.srv = self.create_service(GetTargetPose, '/get_target_pose', self.get_pose_cb)
+        self.camera_serial = self.resolve_camera_serial(self.camera_serial, self.camera_index)
+        self.srv = self.create_service(GetTargetPose, '/robot2/get_target_pose', self.get_pose_cb)
         
         # 🌟 앙상블 모드: 두 개의 모델을 동시에 로드합니다.
         self.model_det = YOLO("/home/user2/dis_duplo_ws/best.pt")      # 좌표 안정화용 새 모델 (detect)
@@ -29,8 +31,7 @@ class VisionNode(Node):
 
         self.pipeline = rs.pipeline()
         config = rs.config()
-        if self.camera_serial:
-            config.enable_device(self.camera_serial)
+        config.enable_device(self.camera_serial)
         config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
         config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
         profile = self.pipeline.start(config)
@@ -42,8 +43,23 @@ class VisionNode(Node):
 
         self.create_timer(0.033, self.visualize_callback)
         self.get_logger().info(
-            f"🚀 Vision Node: robot1 camera serial={self.camera_serial}, service=/get_target_pose"
+            f"🚀 Vision Node2: robot2 camera serial={self.camera_serial}, service=/robot2/get_target_pose"
         )
+
+    def resolve_camera_serial(self, camera_serial, camera_index):
+        if camera_serial:
+            return camera_serial
+
+        ctx = rs.context()
+        devices = ctx.query_devices()
+        serials = [dev.get_info(rs.camera_info.serial_number) for dev in devices]
+
+        if len(serials) <= camera_index:
+            raise RuntimeError(
+                f"robot2 camera not found. camera_index={camera_index}, available_serials={serials}"
+            )
+
+        return serials[camera_index]
 
     def calculate_refined_yaw(self, rect):
         (cx, cy), (w, h), angle = rect
@@ -71,7 +87,7 @@ class VisionNode(Node):
             # 아래 기존 YOLO 시각화 코드는 서비스 정밀 측정과 분리되어 있으며, 필요하면 이 블록을 제거해 복구합니다.
             display_img = self.latest_color.copy()
             cv2.circle(display_img, (320, 240), 5, (0, 0, 255), -1)
-            cv2.imshow("6D Pose (Raw Camera Mode)", display_img)
+            cv2.imshow("Robot2 6D Pose (Raw Camera Mode)", display_img)
             cv2.waitKey(1)
             return
             
@@ -118,7 +134,7 @@ class VisionNode(Node):
                         cv2.putText(display_img, f"Yaw:{yaw:.1f}", (u - 60, v + 45), 
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
-            cv2.imshow("6D Pose (Ensemble Mode)", display_img)
+            cv2.imshow("Robot2 6D Pose (Ensemble Mode)", display_img)
             cv2.waitKey(1)
         except Exception:
             pass
