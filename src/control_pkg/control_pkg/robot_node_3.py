@@ -11,16 +11,28 @@
 #         "ip": "10.0.2.7",
 #         "cam_x_off": -53.0,
 #         "cam_y_off": 35.0,
-#         "home_joint": [-90.0, 0.0, 50.0, 0.0, 130.0, 0.0],
-#         "separation_joint": [-90.33, 3.1, 49.29, -0.02, 130.61, 0.41],
-#         "drop_joint": [-90.0, 4.5, 90.5, 0.9, 84.2, 0.0],
+#         "home_joint": [-90.0, 6.67, 35.34, 0.0, 138.0, 0.0],
+#         # "separation_joint": [-90.33, 3.1, 49.29, -0.02, 130.61, -90.41],
+#         "separation_joint": [-88.26, 3.5, 48.84, 0.0, 126.44, -90.0], # 살짝 기울어져있어서 수정함
+#         "drop_joint": [-90.0, 11.04, 83.29, 0.0, 85.67, 0.0],
+#         "drop_joint2": [-102.53, 13.33, 80.6, 0.0, 86.07,-12.53],
+#         "drop_joint3": [-113.13, 20.29, 71.96, 0.0, 87.75,-20.84],
+#         "drop_joint4": [-79.61, 11.64, 82.56, 0.0, 85.77,10.39],
+#         "drop_joint5": [-68.76, 15.86, 77.51, 0.0, 86.61,21.24],
 #     },
 #     "robot2": {
 #         "ip": "10.0.2.8",
 #         "cam_x_off": -53.0,
-#         "cam_y_off": 35.0,
+#         "cam_y_off": 51.0, #35
 #         "home_joint": [-90.0, -94.0, 147.7, 0.0, 35.6, 0.0],
-#         "separation_joint": [-92.0, -3.0, 103.5, 0.0, -9.0, -3.0],
+        
+#         # 👇 추가된 중간 경유지 (Waypoint)
+#         "separation_waypoint": [-90.0, 0.0, 120.0, 0.0, -30.0, 0.0], 
+        
+#         # "separation_joint": [-92.55, 1.03, 99.60, -3.79, -9.14, -1.16], # 이건 그리퍼짧을때 집으러가는 오프셋
+#         # "separation_joint": [-92.0, -4.71, 105.11, -0.35, -8.9, -2.66], #그리퍼 떼기전 오프셋
+#         # "separation_joint": [-92.74, -6.28, 106.55, -5.21, -8.8, 2.13], #이건 그리퍼 길어졌을때 오프셋 
+#         "separation_joint": [-90.0, -10.0, 110.0, 0.0, -10.0, 0.0], #살짝 기울어져있어서 수정함 (로봇이 서로 90도 이루게끔 수정)
 #         "drop_joint": [-90.0, 2.0, 128.4, -2.6, -31.6, 0.0],
 #     },
 # }
@@ -43,8 +55,16 @@
 #                 "cam_x_off": cfg["cam_x_off"],
 #                 "cam_y_off": cfg["cam_y_off"],
 #                 "home_joint": np.array(cfg["home_joint"], dtype=float),
+                
+#                 # 👇 설정값에 waypoint가 있으면 불러오고, 없으면 None으로 처리
+#                 "separation_waypoint": np.array(cfg["separation_waypoint"], dtype=float) if "separation_waypoint" in cfg else None,
+                
 #                 "separation_joint": np.array(cfg.get("separation_joint", cfg["home_joint"]), dtype=float),
 #                 "drop_joint": np.array(cfg.get("drop_joint", cfg["home_joint"]), dtype=float),
+#                 "drop_joint2": np.array(cfg.get("drop_joint2", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
+#                 "drop_joint3": np.array(cfg.get("drop_joint3", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
+#                 "drop_joint4": np.array(cfg.get("drop_joint4", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
+#                 "drop_joint5": np.array(cfg.get("drop_joint5", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
 #             }
 
 #             self.create_service(
@@ -122,12 +142,34 @@
 #                 self.wait_move(robot_name, f"Z_MOVE({req.z:.1f})")
 
 #             elif req.target_size == "SEPARATION":
+#                 # 👇 경유지(Waypoint)가 설정되어 있다면 먼저 이동하고 대기
+#                 if handle.get("separation_waypoint") is not None:
+#                     robot.move_j(rc, handle["separation_waypoint"], 255, 255)
+#                     self.wait_move(robot_name, "SEPARATION_WAYPOINT")
+                
+#                 # 그 후 최종 분리(Separation) 자세로 이동
 #                 robot.move_j(rc, handle["separation_joint"], 255, 255)
 #                 self.wait_move(robot_name, "SEPARATION")
 
 #             elif req.target_size == "DROP":
 #                 robot.move_j(rc, handle["drop_joint"], 255, 255)
 #                 self.wait_move(robot_name, "DROP")
+
+#             elif req.target_size == "DROP2":
+#                 robot.move_j(rc, handle["drop_joint2"], 255, 255)
+#                 self.wait_move(robot_name, "DROP2")
+
+#             elif req.target_size == "DROP3":
+#                 robot.move_j(rc, handle["drop_joint3"], 255, 255)
+#                 self.wait_move(robot_name, "DROP3")
+
+#             elif req.target_size == "DROP4":
+#                 robot.move_j(rc, handle["drop_joint4"], 255, 255)
+#                 self.wait_move(robot_name, "DROP4")
+
+#             elif req.target_size == "DROP5":
+#                 robot.move_j(rc, handle["drop_joint5"], 255, 255)
+#                 self.wait_move(robot_name, "DROP5")
 
 #             else:
 #                 self.get_logger().error(f"{robot_name} unknown target_size: {req.target_size}")
@@ -169,8 +211,7 @@ ROBOT_CONFIGS = {
         "cam_x_off": -53.0,
         "cam_y_off": 35.0,
         "home_joint": [-90.0, 6.67, 35.34, 0.0, 138.0, 0.0],
-        # "separation_joint": [-90.33, 3.1, 49.29, -0.02, 130.61, -90.41],
-        "separation_joint": [-88.26, 3.5, 48.84, 0.0, 126.44, -90.0], # 살짝 기울어져있어서 수정함
+        "separation_joint": [-88.26, 3.5, 48.84, 0.0, 126.44, -90.0],
         "drop_joint": [-90.0, 11.04, 83.29, 0.0, 85.67, 0.0],
         "drop_joint2": [-102.53, 13.33, 80.6, 0.0, 86.07,-12.53],
         "drop_joint3": [-113.13, 20.29, 71.96, 0.0, 87.75,-20.84],
@@ -180,12 +221,13 @@ ROBOT_CONFIGS = {
     "robot2": {
         "ip": "10.0.2.8",
         "cam_x_off": -53.0,
-        "cam_y_off": 51.0, #35
+        "cam_y_off": 51.0, 
         "home_joint": [-90.0, -94.0, 147.7, 0.0, 35.6, 0.0],
-        # "separation_joint": [-92.55, 1.03, 99.60, -3.79, -9.14, -1.16], # 이건 그리퍼짧을때 집으러가는 오프셋
-        # "separation_joint": [-92.0, -4.71, 105.11, -0.35, -8.9, -2.66], #그리퍼 떼기전 오프셋
-        # "separation_joint": [-92.74, -6.28, 106.55, -5.21, -8.8, 2.13], #이건 그리퍼 길어졌을때 오프셋 
-        "separation_joint": [-90.0, -10.0, 110.0, 0.0, -10.0, 0.0], #살짝 기울어져있어서 수정함 (로봇이 서로 90도 이루게끔 수정)
+        
+        # 👇 추가된 중간 경유지 (Waypoint)
+        "separation_waypoint": [-90.0, 0.0, 120.0, 0.0, -30.0, 0.0], 
+        
+        "separation_joint": [-90.0, -9.03, 112.33, -0.02, -14.02, 0.02],
         "drop_joint": [-90.0, 2.0, 128.4, -2.6, -31.6, 0.0],
     },
 }
@@ -208,6 +250,9 @@ class DualRobotNode(Node):
                 "cam_x_off": cfg["cam_x_off"],
                 "cam_y_off": cfg["cam_y_off"],
                 "home_joint": np.array(cfg["home_joint"], dtype=float),
+                
+                "separation_waypoint": np.array(cfg["separation_waypoint"], dtype=float) if "separation_waypoint" in cfg else None,
+                
                 "separation_joint": np.array(cfg.get("separation_joint", cfg["home_joint"]), dtype=float),
                 "drop_joint": np.array(cfg.get("drop_joint", cfg["home_joint"]), dtype=float),
                 "drop_joint2": np.array(cfg.get("drop_joint2", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
@@ -254,6 +299,12 @@ class DualRobotNode(Node):
     def home_cb(self, robot_name, req, res):
         try:
             handle = self.robots[robot_name]
+            
+            # 👇 유일하게 수정된 부분: 홈으로 가기 전에 경유지(Waypoint)가 있으면 먼저 들름
+            if handle.get("separation_waypoint") is not None:
+                handle["robot"].move_j(handle["rc"], handle["separation_waypoint"], 255, 255)
+                self.wait_move(robot_name, "HOME_WAYPOINT")
+            
             handle["robot"].move_j(handle["rc"], handle["home_joint"], 255, 255)
             self.wait_move(robot_name, "HOME")
             res.success = True
@@ -291,6 +342,10 @@ class DualRobotNode(Node):
                 self.wait_move(robot_name, f"Z_MOVE({req.z:.1f})")
 
             elif req.target_size == "SEPARATION":
+                if handle.get("separation_waypoint") is not None:
+                    robot.move_j(rc, handle["separation_waypoint"], 255, 255)
+                    self.wait_move(robot_name, "SEPARATION_WAYPOINT")
+                
                 robot.move_j(rc, handle["separation_joint"], 255, 255)
                 self.wait_move(robot_name, "SEPARATION")
 
@@ -307,11 +362,11 @@ class DualRobotNode(Node):
                 self.wait_move(robot_name, "DROP3")
 
             elif req.target_size == "DROP4":
-                robot.move_j(rc, handle["drop_joint3"], 255, 255)
+                robot.move_j(rc, handle["drop_joint4"], 255, 255)
                 self.wait_move(robot_name, "DROP4")
 
             elif req.target_size == "DROP5":
-                robot.move_j(rc, handle["drop_joint3"], 255, 255)
+                robot.move_j(rc, handle["drop_joint5"], 255, 255)
                 self.wait_move(robot_name, "DROP5")
 
             else:

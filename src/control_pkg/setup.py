@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'robot_node = control_pkg.robot_node:main',
             'robot_node_2 = control_pkg.robot_node_2:main',
+            'robot_node_3 = control_pkg.robot_node_3:main',
             'master_node_dis = control_pkg.master_node_dis:main',
             'master_node_dis2 = control_pkg.master_node_dis2:main',
             'master_node_dis3 = control_pkg.master_node_dis3:main',
@@ -34,6 +35,7 @@ setup(
             'master_node_dis6 = control_pkg.master_node_dis6:main',
             'master_node_dis7 = control_pkg.master_node_dis7:main',
             'master_node_dis8 = control_pkg.master_node_dis8:main',
+            'master_node_dis9 = control_pkg.master_node_dis9:main',
         ],
     },
 )
