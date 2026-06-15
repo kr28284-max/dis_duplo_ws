@@ -185,6 +185,7 @@ ROBOT_CONFIGS = {
         # "separation_joint": [-92.55, 1.03, 99.60, -3.79, -9.14, -1.16], # 이건 그리퍼짧을때 집으러가는 오프셋
         # "separation_joint": [-92.0, -4.71, 105.11, -0.35, -8.9, -2.66], #그리퍼 떼기전 오프셋
         # "separation_joint": [-92.74, -6.28, 106.55, -5.21, -8.8, 2.13], #이건 그리퍼 길어졌을때 오프셋 
+        "separation_waypoint": [-90.0, 0.0, 120.0, 0.0, -30.0, 0.0],
         "separation_joint": [-90.0, -10.0, 110.0, 0.0, -10.0, 0.0], #살짝 기울어져있어서 수정함 (로봇이 서로 90도 이루게끔 수정)
         "drop_joint": [-90.0, 2.0, 128.4, -2.6, -31.6, 0.0],
     },
@@ -208,12 +209,15 @@ class DualRobotNode(Node):
                 "cam_x_off": cfg["cam_x_off"],
                 "cam_y_off": cfg["cam_y_off"],
                 "home_joint": np.array(cfg["home_joint"], dtype=float),
+                "end_joint": np.array(cfg.get("end_joint", cfg["home_joint"]), dtype=float),
+                "separation_waypoint": np.array(cfg["separation_waypoint"], dtype=float) if "separation_waypoint" in cfg else None,
                 "separation_joint": np.array(cfg.get("separation_joint", cfg["home_joint"]), dtype=float),
                 "drop_joint": np.array(cfg.get("drop_joint", cfg["home_joint"]), dtype=float),
                 "drop_joint2": np.array(cfg.get("drop_joint2", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
                 "drop_joint3": np.array(cfg.get("drop_joint3", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
                 "drop_joint4": np.array(cfg.get("drop_joint4", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
                 "drop_joint5": np.array(cfg.get("drop_joint5", cfg.get("drop_joint", cfg["home_joint"])), dtype=float),
+                "last_target": None,
             }
 
             self.create_service(
@@ -254,8 +258,16 @@ class DualRobotNode(Node):
     def home_cb(self, robot_name, req, res):
         try:
             handle = self.robots[robot_name]
+            if (
+                robot_name == "robot2"
+                and handle.get("last_target") == "SEPARATION"
+                and handle.get("separation_waypoint") is not None
+            ):
+                handle["robot"].move_j(handle["rc"], handle["separation_waypoint"], 255, 255)
+                self.wait_move(robot_name, "SEPARATION_WAYPOINT_TO_HOME")
             handle["robot"].move_j(handle["rc"], handle["home_joint"], 255, 255)
             self.wait_move(robot_name, "HOME")
+            handle["last_target"] = "HOME"
             res.success = True
         except Exception as e:
             self.get_logger().error(f"{robot_name} HOME Error: {e}")
@@ -291,6 +303,9 @@ class DualRobotNode(Node):
                 self.wait_move(robot_name, f"Z_MOVE({req.z:.1f})")
 
             elif req.target_size == "SEPARATION":
+                if robot_name == "robot2" and handle.get("separation_waypoint") is not None:
+                    robot.move_j(rc, handle["separation_waypoint"], 255, 255)
+                    self.wait_move(robot_name, "SEPARATION_WAYPOINT")
                 robot.move_j(rc, handle["separation_joint"], 255, 255)
                 self.wait_move(robot_name, "SEPARATION")
 
@@ -314,12 +329,17 @@ class DualRobotNode(Node):
                 robot.move_j(rc, handle["drop_joint3"], 255, 255)
                 self.wait_move(robot_name, "DROP5")
 
+            elif req.target_size == "END":
+                robot.move_j(rc, handle["end_joint"], 255, 255)
+                self.wait_move(robot_name, "END")
+
             else:
                 self.get_logger().error(f"{robot_name} unknown target_size: {req.target_size}")
                 res.success = False
                 return res
 
             res.success = True
+            handle["last_target"] = req.target_size
         except Exception as e:
             self.get_logger().error(f"{robot_name} Move Error: {e}")
             res.success = False

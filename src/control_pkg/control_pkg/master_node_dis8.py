@@ -626,7 +626,8 @@ class BatteryDualDisassembly(Node):
         self.call(self.cli_r1, req_yaw)
         self.sleep()
 
-        p = self.find_target_with_retry(selected_target)
+        # 2차/3차 스캔에서는 2x2_* <-> 4x2_* 간 상호 대체 허용
+        p, selected_target = self.find_target_candidate_with_retry(target)
         if not p:
             self.get_logger().error("robot1: 2차 스캔(XY) 실패")
             return False
@@ -637,7 +638,7 @@ class BatteryDualDisassembly(Node):
         self.call(self.cli_r1, req_xy)
         self.sleep()
 
-        p = self.find_target_with_retry(selected_target)
+        p, selected_target = self.find_target_candidate_with_retry(target)
         if not p:
             self.get_logger().error("robot1: 3차 스캔(Z) 실패")
             return False
